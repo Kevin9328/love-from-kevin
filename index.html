@@ -45,8 +45,18 @@
     transition: transform 0.06s ease;
   }
   .btn:active { transform: translateY(1px) scale(0.995); }
-  .hint {
-    font-size: 12px; color: #6b7280; margin-top: 8px;
+  /* Floating hearts */
+  .heart {
+    position: fixed;
+    bottom: 0;
+    font-size: 24px;
+    animation: floatUp 4s linear forwards;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+  @keyframes floatUp {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--drift, 0px), -150px) scale(1.5); opacity: 0; }
   }
   /* Splash screen */
   #splash {
@@ -63,23 +73,25 @@
   #splash.fade {
     opacity: 0; pointer-events: none;
   }
-
-.heart {
-  position: fixed;
-  bottom: 0;
-  font-size: 24px;
-  animation: floatUp 4s linear forwards;
-  pointer-events: none;
-  will-change: transform, opacity;
-}
-
-@keyframes floatUp {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(var(--drift, 0px), -150px) scale(1.5); opacity: 0; }
-}
-  100% { transform: translateY(-150px) scale(1.5); opacity: 0; }
-}
-
+  /* Photo area (optional) */
+  .photo {
+    width: 100%;
+    max-width: 540px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+  .photo img {
+    width: 100%; height: auto; display: none; border-radius: 16px;
+  }
+  .photo img.show {
+    display: block;
+    animation: fadein 400ms ease;
+  }
+  @keyframes fadein {
+    from { opacity: 0; transform: scale(0.985); }
+    to   { opacity: 1; transform: scale(1); }
+  }
 </style>
 </head>
 <body>
@@ -90,8 +102,9 @@
 
 <div class="app">
   <h1>Love from Kevin</h1>
+  <div class="photo"><img id="photo" alt="Memory"></div>
   <div class="card">
-    <div id="quote" class="quote">Tap the button for a note.</div>
+    <div id="quote" class="quote">Loading your note…</div>
     <div id="meta" class="meta"></div>
   </div>
   <button class="btn" id="btnLove">Give Me Some Love ❤️</button>
@@ -99,30 +112,36 @@
 </div>
 
 <script>
-const quotes = ['I love you to the moon and back', 'You are the best thing to ever happen to me', 'You light up my world like no other', 'You are my love bug now and forever', 'I cant do life without you', 'you have my whole heart', 'I will always be here for you', 'Every day with you is my favorite day.', 'You make my heart smile.', 'Your love is my greatest blessing.', 'Life is sweeter with you by my side.', 'You are my today and all of my tomorrows.', 'In your arms is my favorite place to be.', 'You make the little things in life feel big and beautiful.', 'I’m thankful for you every single day.'];
+// --- Config ---
+// Important dates
+const MET_DATE = new Date(2022, 8, 8);     // Sept 8, 2022 (month is 0-based)
+const MARRIED_DATE = new Date(2024, 6, 5); // July 5, 2024
 
-function randomItem(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+// Files to fetch (edit these in GitHub)
+const QUOTES_URL = 'quotes.json';
+const PHOTOS_URL = 'photos.json';
+
+// In-case-of-offline fallback quotes (won't be used if quotes.json loads)
+const FALLBACK_QUOTES = [
+  "You are my love bug now and forever",
+  "You have my whole heart",
+  "I will always be here for you"
+];
+
+let QUOTES = [];
+let PHOTOS = [];
+
+// --- Utilities ---
+function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function updateCounters() {
+  const today = new Date();
+  const daysMet = Math.floor((today - MET_DATE) / (1000*60*60*24));
+  const daysMarried = Math.floor((today - MARRIED_DATE) / (1000*60*60*24));
+  document.getElementById('counter').textContent =
+    "We met Sep 08, 2022 • " + daysMet + " days ago | Married Jul 05, 2024 • " + daysMarried + " days ago";
 }
 
-function pickQuote() {
-  const qEl = document.getElementById('quote');
-  const metaEl = document.getElementById('meta');
-  qEl.classList.remove('show');
-  setTimeout(() => {
-    const q = randomItem(quotes);
-    const now = new Date();
-    qEl.textContent = q;
-    metaEl.textContent = "— Kevin • " + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    qEl.classList.add('show');
-    if (navigator.vibrate) navigator.vibrate(12);
-  }, 200);
-}
-
-document.getElementById('btnLove').addEventListener('click', () => { pickQuote(); burstHearts(5); updateCounters(); });
-
-
-
+// Hearts
 function createHeart() {
   const heart = document.createElement('div');
   heart.className = 'heart';
@@ -130,31 +149,61 @@ function createHeart() {
   heart.textContent = colors[Math.floor(Math.random() * colors.length)];
   heart.style.left = Math.random() * 90 + 'vw';
   heart.style.fontSize = (16 + Math.random() * 24) + 'px';
-  // random horizontal drift
-  const drift = (Math.random() * 60 - 30) + 'px'; // -30px to +30px
+  const drift = (Math.random() * 60 - 30) + 'px';
   heart.style.setProperty('--drift', drift);
   document.body.appendChild(heart);
   setTimeout(() => heart.remove(), 4000);
 }
+function burstHearts(count) { for (let i = 0; i < count; i++) setTimeout(createHeart, i * 120); }
 
-function burstHearts(count) {
-  for (let i = 0; i < count; i++) {
-    setTimeout(() => createHeart(), i * 120);
+// Quote + photo
+function showRandomPhoto() {
+  const img = document.getElementById('photo');
+  if (!PHOTOS.length) { img.classList.remove('show'); img.style.display = 'none'; return; }
+  const url = randomItem(PHOTOS);
+  img.src = url;
+  img.onload = () => { img.style.display = 'block'; img.classList.add('show'); };
+}
+function pickQuote() {
+  const qEl = document.getElementById('quote');
+  const metaEl = document.getElementById('meta');
+  qEl.classList.remove('show');
+  setTimeout(() => {
+    const source = QUOTES.length ? QUOTES : FALLBACK_QUOTES;
+    const q = randomItem(source);
+    const now = new Date();
+    qEl.textContent = q;
+    metaEl.textContent = "— Kevin • " + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    qEl.classList.add('show');
+    if (navigator.vibrate) navigator.vibrate(12);
+  }, 200);
+  showRandomPhoto();
+}
+
+// Load JSON (no-store to avoid stale cache)
+async function loadData() {
+  try {
+    const [qRes, pRes] = await Promise.all([
+      fetch(QUOTES_URL + '?v=' + Date.now(), { cache: 'no-store' }),
+      fetch(PHOTOS_URL + '?v=' + Date.now(), { cache: 'no-store' }),
+    ]);
+    if (qRes.ok) QUOTES = await qRes.json();
+    if (pRes.ok) PHOTOS = await pRes.json();
+  } catch(e) {
+    // Ignore and use fallbacks
   }
 }
 
-function updateCounters() {
-  const met = new Date(2022, 8, 8);
-  const married = new Date(2024, 6, 5);
-  const today = new Date();
-  const daysMet = Math.floor((today - met) / (1000*60*60*24));
-  const daysMarried = Math.floor((today - married) / (1000*60*60*24));
-  document.getElementById('counter').textContent =
-    "We met Sep 08, 2022 • " + daysMet + " days ago | Married Jul 05, 2024 • " + daysMarried + " days ago";
-}
+// Events
+document.getElementById('btnLove').addEventListener('click', () => {
+  pickQuote(); burstHearts(5); updateCounters();
+});
 
-// Splash screen fade
-window.addEventListener('load', () => { updateCounters();
+// Splash + init
+window.addEventListener('load', async () => {
+  await loadData();
+  updateCounters();
+  pickQuote(); // show something on first load
   setTimeout(() => document.getElementById('splash').classList.add('fade'), 800);
 });
 </script>
