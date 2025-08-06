@@ -63,6 +63,23 @@
   #splash.fade {
     opacity: 0; pointer-events: none;
   }
+
+.heart {
+  position: fixed;
+  bottom: 0;
+  font-size: 24px;
+  animation: floatUp 4s linear forwards;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+@keyframes floatUp {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--drift, 0px), -150px) scale(1.5); opacity: 0; }
+}
+  100% { transform: translateY(-150px) scale(1.5); opacity: 0; }
+}
+
 </style>
 </head>
 <body>
@@ -78,7 +95,7 @@
     <div id="meta" class="meta"></div>
   </div>
   <button class="btn" id="btnLove">Give Me Some Love ❤️</button>
-  <div class="hint">Tip: In Safari → Share → Add to Home Screen.</div>
+  <div id="counter" class="meta"></div>
 </div>
 
 <script>
@@ -102,10 +119,42 @@ function pickQuote() {
   }, 200);
 }
 
-document.getElementById('btnLove').addEventListener('click', pickQuote);
+document.getElementById('btnLove').addEventListener('click', () => { pickQuote(); burstHearts(5); updateCounters(); });
+
+
+
+function createHeart() {
+  const heart = document.createElement('div');
+  heart.className = 'heart';
+  const colors = ['❤️','🩷','🧡','💛'];
+  heart.textContent = colors[Math.floor(Math.random() * colors.length)];
+  heart.style.left = Math.random() * 90 + 'vw';
+  heart.style.fontSize = (16 + Math.random() * 24) + 'px';
+  // random horizontal drift
+  const drift = (Math.random() * 60 - 30) + 'px'; // -30px to +30px
+  heart.style.setProperty('--drift', drift);
+  document.body.appendChild(heart);
+  setTimeout(() => heart.remove(), 4000);
+}
+
+function burstHearts(count) {
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => createHeart(), i * 120);
+  }
+}
+
+function updateCounters() {
+  const met = new Date(2022, 8, 8);
+  const married = new Date(2024, 6, 5);
+  const today = new Date();
+  const daysMet = Math.floor((today - met) / (1000*60*60*24));
+  const daysMarried = Math.floor((today - married) / (1000*60*60*24));
+  document.getElementById('counter').textContent =
+    "We met Sep 08, 2022 • " + daysMet + " days ago | Married Jul 05, 2024 • " + daysMarried + " days ago";
+}
 
 // Splash screen fade
-window.addEventListener('load', () => {
+window.addEventListener('load', () => { updateCounters();
   setTimeout(() => document.getElementById('splash').classList.add('fade'), 800);
 });
 </script>
