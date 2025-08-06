@@ -19,11 +19,9 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     min-height: 100dvh; padding: 24px; gap: 16px; text-align: center;
   }
-  h1 {
-    font-size: 28px; margin: 0; letter-spacing: 0.5px;
-  }
+  h1 { font-size: 28px; margin: 0; letter-spacing: 0.5px; }
   .card {
-    background: rgba(255,255,255,0.8); backdrop-filter: blur(6px);
+    background: rgba(255,255,255,0.85); backdrop-filter: blur(6px);
     border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     max-width: 540px; width: 100%;
   }
@@ -32,12 +30,8 @@
     opacity: 0; transform: translateY(10px);
     transition: all 0.4s ease;
   }
-  .quote.show {
-    opacity: 1; transform: translateY(0);
-  }
-  .meta {
-    font-size: 13px; color: #6b7280; margin-top: 8px;
-  }
+  .quote.show { opacity: 1; transform: translateY(0); }
+  .meta { font-size: 13px; color: #6b7280; margin-top: 8px; }
   .btn {
     appearance: none; border: 0; background: #e11d48; color: white;
     padding: 16px 20px; border-radius: 999px; font-size: 18px; font-weight: 700;
@@ -45,47 +39,27 @@
     transition: transform 0.06s ease;
   }
   .btn:active { transform: translateY(1px) scale(0.995); }
+  /* Splash */
+  #splash {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, #fff5f7, #ffe8ef);
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    z-index: 9999; transition: opacity 0.6s ease;
+  }
+  #splash img { width: 120px; height: 120px; margin-bottom: 20px; }
+  #splash.fade { opacity: 0; pointer-events: none; }
+  /* Photo area */
+  .photo { width: 100%; max-width: 540px; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+  .photo img { width: 100%; height: auto; display: block; border-radius: 16px; opacity: 0; transition: opacity 400ms ease; }
+  .photo img.show { opacity: 1; }
   /* Floating hearts */
   .heart {
-    position: fixed;
-    bottom: 0;
-    font-size: 24px;
-    animation: floatUp 4s linear forwards;
-    pointer-events: none;
-    will-change: transform, opacity;
+    position: fixed; bottom: 0; font-size: 24px;
+    animation: floatUp 4s linear forwards; pointer-events: none; will-change: transform, opacity;
   }
   @keyframes floatUp {
     0% { transform: translate(0, 0) scale(1); opacity: 1; }
     100% { transform: translate(var(--drift, 0px), -150px) scale(1.5); opacity: 0; }
-  }
-  /* Splash screen */
-  #splash {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(135deg, #fff5f7, #ffe8ef);
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column;
-    z-index: 9999;
-    transition: opacity 0.6s ease;
-  }
-  #splash img {
-    width: 120px; height: 120px; margin-bottom: 20px;
-  }
-  #splash.fade {
-    opacity: 0; pointer-events: none;
-  }
-  /* Photo area (optional) */
-  .photo {
-    width: 100%;
-    max-width: 540px;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  }
-  .photo img { width: 100%; height: auto; display: block; border-radius: 16px; opacity: 0; transition: opacity 400ms ease; }
-  .photo img.show { opacity: 1; }
-  @keyframes fadein {
-    from { opacity: 0; transform: scale(0.985); }
-    to   { opacity: 1; transform: scale(1); }
   }
 </style>
 </head>
@@ -108,37 +82,13 @@
 
 <script>
 // --- Config ---
-// Important dates
-const MET_DATE = new Date(2022, 8, 8);     // Sept 8, 2022 (month is 0-based)
+const MET_DATE = new Date(2022, 8, 8);     // Sept 8, 2022
 const MARRIED_DATE = new Date(2024, 6, 5); // July 5, 2024
 
-// Files to fetch (edit these in GitHub)
-const QUOTES_URL = 'quotes.json';
-const PHOTOS_URL = 'photos.json';
-
-// --- Special Messages ---
-// Format of special_messages.json:
-// {
-//   "MM-DD": ["Message 1", "Message 2"]
-// }
-// Example: { "07-05": ["Anniversary message 1", "Anniversary message 2"] }
+const QUOTES_URL  = 'quotes.json';
+const PHOTOS_URL  = 'photos.json';
 const SPECIAL_URL = 'special_messages.json';
 
-let SPECIALS = {};
-
-function getTodayKey() {
-  const now = new Date();
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const dd = String(now.getDate()).padStart(2, '0');
-  return mm + '-' + dd;
-}
-
-function todayMessages() {
-  return SPECIALS[getTodayKey()] || null;
-}
-
-
-// In-case-of-offline fallback quotes (won't be used if quotes.json loads)
 const FALLBACK_QUOTES = [
   "You are my love bug now and forever",
   "You have my whole heart",
@@ -147,117 +97,117 @@ const FALLBACK_QUOTES = [
 
 let QUOTES = [];
 let PHOTOS = [];
+let SPECIALS = {};
 
-// --- Utilities ---
-function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-function updateCounters() {
+// --- Safe helpers ---
+function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function todayKey(){
+  const now = new Date();
+  return String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+}
+function todayMessages(){ return SPECIALS[todayKey()] || null; }
+
+async function fetchJSON(url){
+  try{
+    const res = await fetch(url + '?v=' + Date.now(), { cache: 'no-store' });
+    if(!res.ok) return null;
+    return await res.json();
+  }catch(e){ console.warn('Failed to load', url, e); return null; }
+}
+
+async function loadData(){
+  const [q,p,s] = await Promise.allSettled([ fetchJSON(QUOTES_URL), fetchJSON(PHOTOS_URL), fetchJSON(SPECIAL_URL) ]);
+  if(q.status==='fulfilled' && Array.isArray(q.value)) QUOTES = q.value;
+  if(p.status==='fulfilled' && Array.isArray(p.value)) PHOTOS = p.value;
+  if(s.status==='fulfilled' && s.value && typeof s.value==='object') SPECIALS = s.value;
+}
+
+// --- Counters ---
+function updateCounters(){
   const today = new Date();
-  const daysMet = Math.floor((today - MET_DATE) / (1000*60*60*24));
-  const daysMarried = Math.floor((today - MARRIED_DATE) / (1000*60*60*24));
+  const daysMet = Math.floor((today - MET_DATE) / 86400000);
+  const daysMarried = Math.floor((today - MARRIED_DATE) / 86400000);
   document.getElementById('counter').textContent =
     "We met Sep 08, 2022 • " + daysMet + " days ago | Married Jul 05, 2024 • " + daysMarried + " days ago";
 }
 
-// Hearts
-function createHeart() {
+// --- Floating hearts ---
+function createHeart(){
   const heart = document.createElement('div');
   heart.className = 'heart';
   const colors = ['❤️','🩷','🧡','💛'];
-  heart.textContent = colors[Math.floor(Math.random() * colors.length)];
-  heart.style.left = Math.random() * 90 + 'vw';
-  heart.style.fontSize = (16 + Math.random() * 24) + 'px';
-  const drift = (Math.random() * 60 - 30) + 'px';
-  heart.style.setProperty('--drift', drift);
+  heart.textContent = colors[Math.floor(Math.random()*colors.length)];
+  heart.style.left = Math.random()*90 + 'vw';
+  heart.style.fontSize = (16 + Math.random()*24) + 'px';
+  heart.style.setProperty('--drift', (Math.random()*60-30)+'px');
   document.body.appendChild(heart);
-  setTimeout(() => heart.remove(), 4000);
+  setTimeout(()=>heart.remove(), 4000);
 }
-function burstHearts(count) { for (let i = 0; i < count; i++) setTimeout(createHeart, i * 120); }
+function burstHearts(n){ for(let i=0;i<n;i++) setTimeout(createHeart, i*120); }
 
-
-// --- Photo Preload & Auto-Rotate ---
-let photoIndex = 0;
+// --- Photos: preload + autorotate ---
+let photoIndex = -1;
 let preloaded = [];
-
-function preloadPhotos(urls) {
-  preloaded = urls.map(u => {
-    const im = new Image();
-    im.src = u;
-    return im;
-  });
+function preloadPhotos(urls){
+  preloaded = urls.map(u=>{ const im = new Image(); im.src=u; return im; });
 }
-
-function rotatePhoto() {
+function rotatePhoto(){
   const img = document.getElementById('photo');
-  if (!PHOTOS.length) { img.classList.remove('show'); img.style.opacity = 0; return; }
-  // Choose next index
-  photoIndex = (photoIndex + 1) % PHOTOS.length;
+  if(!PHOTOS.length){ img.classList.remove('show'); img.style.opacity=0; return; }
+  photoIndex = (photoIndex+1) % PHOTOS.length;
   const nextUrl = PHOTOS[photoIndex];
   const candidate = preloaded[photoIndex];
 
-  // Fade out current
   img.classList.remove('show');
-  // Once the next image is loaded (or if already complete), swap and fade in
-  const applyNext = () => {
+  const applyNext = ()=>{
     img.src = nextUrl;
-    // Give the browser a moment to apply src change before fading in
-    requestAnimationFrame(() => requestAnimationFrame(() => img.classList.add('show')));
+    requestAnimationFrame(()=>requestAnimationFrame(()=>img.classList.add('show')));
   };
-
-  if (candidate && candidate.complete) {
-    applyNext();
-  } else {
-    const temp = new Image();
-    temp.onload = applyNext;
-    temp.src = nextUrl;
-  }
+  if(candidate && candidate.complete){ applyNext(); }
+  else { const t = new Image(); t.onload=applyNext; t.src=nextUrl; }
 }
 
-// Load JSON (no-store to avoid stale cache)
-
-// Safe JSON fetch helper
-async function fetchJSON(url) {
-  try {
-    const res = await fetch(url + '?v=' + Date.now(), { cache: 'no-store' });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch (e) {
-    console.warn('Failed to load', url, e);
-    return null;
-  }
+// --- Quotes ---
+function pickQuote(){
+  const qEl = document.getElementById('quote');
+  const metaEl = document.getElementById('meta');
+  qEl.classList.remove('show');
+  setTimeout(()=>{
+    const specials = todayMessages();
+    const source = specials ? specials : (QUOTES.length ? QUOTES : FALLBACK_QUOTES);
+    const q = randomItem(source);
+    const now = new Date();
+    qEl.textContent = q;
+    metaEl.textContent = "— Kevin • " + now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    qEl.classList.add('show');
+    if(navigator.vibrate) navigator.vibrate(12);
+  },200);
 }
 
-// Hardened loader
-async function loadData() {
-  const [q, p, s] = await Promise.all([
-    fetchJSON(QUOTES_URL),
-    fetchJSON(PHOTOS_URL),
-    fetchJSON(SPECIAL_URL)
-  ]);
-  if (Array.isArray(q)) QUOTES = q;
-  if (Array.isArray(p)) PHOTOS = p;
-  if (s && typeof s === 'object') SPECIALS = s;
-}
-}
+// --- Init ---
+document.getElementById('btnLove').addEventListener('click', ()=>{ pickQuote(); burstHearts(5); updateCounters(); });
 
-// Events
-document.getElementById('btnLove').addEventListener('click', () => {
-  pickQuote(); burstHearts(5); updateCounters();
-});
-
-// Splash + init
 window.addEventListener('load', async () => {
-  try {
-  await loadData();
-  preloadPhotos(PHOTOS);
-  if (PHOTOS.length) { document.getElementById('photo').src = PHOTOS[0]; document.getElementById('photo').classList.add('show'); }
-  setInterval(rotatePhoto, 7000);
-  updateCounters();
-  pickQuote(); // show something on first load
-  } catch (e) {
-    console.error('Init error:', e);
-  } finally {
-    setTimeout(() => document.getElementById('splash').classList.add('fade'), 800);
+  // Always fade splash after a second, regardless of data status.
+  setTimeout(()=>document.getElementById('splash').classList.add('fade'), 1000);
+
+  try{
+    await loadData();
+  }catch(e){
+    console.error('Init load error', e);
   }
+
+  // Preload photos & start rotation if available
+  if(PHOTOS.length){
+    preloadPhotos(PHOTOS);
+    const img = document.getElementById('photo');
+    img.src = PHOTOS[0];
+    img.classList.add('show');
+    setInterval(rotatePhoto, 7000);
+  }
+
+  updateCounters();
+  pickQuote();
 });
 </script>
 </body>
