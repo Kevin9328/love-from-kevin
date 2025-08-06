@@ -87,7 +87,6 @@ const MARRIED_DATE = new Date(2024, 6, 5); // July 5, 2024
 
 const QUOTES_URL  = 'quotes.json';
 const PHOTOS_URL  = 'photos.json';
-const SPECIAL_URL = 'special_messages.json';
 
 const FALLBACK_QUOTES = [
   "You are my love bug now and forever",
@@ -97,7 +96,6 @@ const FALLBACK_QUOTES = [
 
 let QUOTES = [];
 let PHOTOS = [];
-let SPECIALS = {};
 
 // --- Safe helpers ---
 function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
@@ -173,7 +171,6 @@ function pickQuote(){
   const metaEl = document.getElementById('meta');
   qEl.classList.remove('show');
   setTimeout(()=>{
-    const specials = todayMessages();
     const source = specials ? specials : (QUOTES.length ? QUOTES : FALLBACK_QUOTES);
     const q = randomItem(source);
     const now = new Date();
