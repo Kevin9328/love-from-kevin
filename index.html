@@ -96,15 +96,10 @@ const FALLBACK_QUOTES = [
 
 let QUOTES = [];
 let PHOTOS = [];
+let SPECIALS = {}; // <-- safe special messages store
 
 // --- Safe helpers ---
 function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function todayKey(){
-  const now = new Date();
-  return String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-}
-function todayMessages(){ return SPECIALS[todayKey()] || null; }
-
 async function fetchJSON(url){
   try{
     const res = await fetch(url + '?v=' + Date.now(), { cache: 'no-store' });
@@ -113,8 +108,13 @@ async function fetchJSON(url){
   }catch(e){ console.warn('Failed to load', url, e); return null; }
 }
 
+// Load quotes, photos, and (safely) special messages
 async function loadData(){
-  const [q,p,s] = await Promise.allSettled([ fetchJSON(QUOTES_URL), fetchJSON(PHOTOS_URL), fetchJSON(SPECIAL_URL) ]);
+  const [q, p, s] = await Promise.allSettled([
+    fetchJSON(QUOTES_URL),
+    fetchJSON(PHOTOS_URL),
+    fetchJSON('special_messages.json') // safe: missing/invalid won't break
+  ]);
   if(q.status==='fulfilled' && Array.isArray(q.value)) QUOTES = q.value;
   if(p.status==='fulfilled' && Array.isArray(p.value)) PHOTOS = p.value;
   if(s.status==='fulfilled' && s.value && typeof s.value==='object') SPECIALS = s.value;
@@ -165,15 +165,17 @@ function rotatePhoto(){
   else { const t = new Image(); t.onload=applyNext; t.src=nextUrl; }
 }
 
-// --- Quotes ---
+// --- Quotes (with safe special-date override) ---
 function pickQuote(){
   const qEl = document.getElementById('quote');
   const metaEl = document.getElementById('meta');
   qEl.classList.remove('show');
   setTimeout(()=>{
+    const now = new Date();
+    const todayKey = String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+    const specials = SPECIALS && SPECIALS[todayKey] ? SPECIALS[todayKey] : null;
     const source = specials ? specials : (QUOTES.length ? QUOTES : FALLBACK_QUOTES);
     const q = randomItem(source);
-    const now = new Date();
     qEl.textContent = q;
     metaEl.textContent = "— Kevin • " + now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
     qEl.classList.add('show');
