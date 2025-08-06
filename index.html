@@ -81,13 +81,8 @@
     overflow: hidden;
     box-shadow: 0 8px 24px rgba(0,0,0,0.08);
   }
-  .photo img {
-    width: 100%; height: auto; display: none; border-radius: 16px;
-  }
-  .photo img.show {
-    display: block;
-    animation: fadein 400ms ease;
-  }
+  .photo img { width: 100%; height: auto; display: block; border-radius: 16px; opacity: 0; transition: opacity 400ms ease; }
+  .photo img.show { opacity: 1; }
   @keyframes fadein {
     from { opacity: 0; transform: scale(0.985); }
     to   { opacity: 1; transform: scale(1); }
@@ -120,6 +115,28 @@ const MARRIED_DATE = new Date(2024, 6, 5); // July 5, 2024
 // Files to fetch (edit these in GitHub)
 const QUOTES_URL = 'quotes.json';
 const PHOTOS_URL = 'photos.json';
+
+// --- Special Messages ---
+// Format of special_messages.json:
+// {
+//   "MM-DD": ["Message 1", "Message 2"]
+// }
+// Example: { "07-05": ["Anniversary message 1", "Anniversary message 2"] }
+const SPECIAL_URL = 'special_messages.json';
+
+let SPECIALS = {};
+
+function getTodayKey() {
+  const now = new Date();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return mm + '-' + dd;
+}
+
+function todayMessages() {
+  return SPECIALS[getTodayKey()] || null;
+}
+
 
 // In-case-of-offline fallback quotes (won't be used if quotes.json loads)
 const FALLBACK_QUOTES = [
@@ -156,39 +173,55 @@ function createHeart() {
 }
 function burstHearts(count) { for (let i = 0; i < count; i++) setTimeout(createHeart, i * 120); }
 
-// Quote + photo
-function showRandomPhoto() {
-  const img = document.getElementById('photo');
-  if (!PHOTOS.length) { img.classList.remove('show'); img.style.display = 'none'; return; }
-  const url = randomItem(PHOTOS);
-  img.src = url;
-  img.onload = () => { img.style.display = 'block'; img.classList.add('show'); };
+
+// --- Photo Preload & Auto-Rotate ---
+let photoIndex = 0;
+let preloaded = [];
+
+function preloadPhotos(urls) {
+  preloaded = urls.map(u => {
+    const im = new Image();
+    im.src = u;
+    return im;
+  });
 }
-function pickQuote() {
-  const qEl = document.getElementById('quote');
-  const metaEl = document.getElementById('meta');
-  qEl.classList.remove('show');
-  setTimeout(() => {
-    const source = QUOTES.length ? QUOTES : FALLBACK_QUOTES;
-    const q = randomItem(source);
-    const now = new Date();
-    qEl.textContent = q;
-    metaEl.textContent = "— Kevin • " + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    qEl.classList.add('show');
-    if (navigator.vibrate) navigator.vibrate(12);
-  }, 200);
-  showRandomPhoto();
+
+function rotatePhoto() {
+  const img = document.getElementById('photo');
+  if (!PHOTOS.length) { img.classList.remove('show'); img.style.opacity = 0; return; }
+  // Choose next index
+  photoIndex = (photoIndex + 1) % PHOTOS.length;
+  const nextUrl = PHOTOS[photoIndex];
+  const candidate = preloaded[photoIndex];
+
+  // Fade out current
+  img.classList.remove('show');
+  // Once the next image is loaded (or if already complete), swap and fade in
+  const applyNext = () => {
+    img.src = nextUrl;
+    // Give the browser a moment to apply src change before fading in
+    requestAnimationFrame(() => requestAnimationFrame(() => img.classList.add('show')));
+  };
+
+  if (candidate && candidate.complete) {
+    applyNext();
+  } else {
+    const temp = new Image();
+    temp.onload = applyNext;
+    temp.src = nextUrl;
+  }
 }
 
 // Load JSON (no-store to avoid stale cache)
 async function loadData() {
   try {
-    const [qRes, pRes] = await Promise.all([
+    const [qRes, pRes, sRes] = await Promise.all([
       fetch(QUOTES_URL + '?v=' + Date.now(), { cache: 'no-store' }),
       fetch(PHOTOS_URL + '?v=' + Date.now(), { cache: 'no-store' }),
     ]);
     if (qRes.ok) QUOTES = await qRes.json();
     if (pRes.ok) PHOTOS = await pRes.json();
+    if (sRes.ok) SPECIALS = await sRes.json();
   } catch(e) {
     // Ignore and use fallbacks
   }
@@ -202,6 +235,9 @@ document.getElementById('btnLove').addEventListener('click', () => {
 // Splash + init
 window.addEventListener('load', async () => {
   await loadData();
+  preloadPhotos(PHOTOS);
+  if (PHOTOS.length) { document.getElementById('photo').src = PHOTOS[0]; document.getElementById('photo').classList.add('show'); }
+  setInterval(rotatePhoto, 7000);
   updateCounters();
   pickQuote(); // show something on first load
   setTimeout(() => document.getElementById('splash').classList.add('fade'), 800);
