@@ -2,275 +2,240 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="love-from-kevin-icon.png">
-<title>Love from Kevin</title>
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    min-height: 100%;
-    height: auto;
-    overflow-y: auto;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-    background: linear-gradient(135deg, #fff5f7, #ffe8ef, #fff5f7);
-    background-size: 400% 400%;
-    animation: bgShift 20s ease infinite;
-    color: #2d2a32;
-    -webkit-tap-highlight-color: transparent;
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="love-from-kevin-icon.png">
+  <title>Love from Kevin</title>
+  <style>
+    html {
+      height: 100%;
+      overflow-y: auto;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #fff5f7, #ffe8ef);
+      background-size: 400% 400%;
+      animation: bgShift 20s ease infinite;
+      color: #2d2a32;
+      overflow-x: hidden;
+    }
 
-  @keyframes bgShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
+    @keyframes bgShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
 
-  .light-overlay {
-    position: fixed;
-    inset: 0;
-    background: url('light-rays.png') repeat;
-    opacity: 0.18;
-    pointer-events: none;
-    z-index: 0;
-  }
+    .app {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+      gap: 16px;
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
 
-  .app {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 24px;
-    gap: 16px;
-    text-align: center;
-    position: relative;
-    z-index: 1;
-    min-height: 100dvh;
-  }
+    h1 {
+      font-size: 28px;
+      margin: 0;
+    }
 
-  h1 {
-    font-size: 28px;
-    margin: 0;
-    letter-spacing: 0.5px;
-  }
+    .photo {
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
 
-  .photo {
-    width: 100%;
-    max-width: 540px;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  }
+    .photo img {
+      width: 100%;
+      height: auto;
+      border-radius: 16px;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      display: block;
+    }
 
-  .photo img {
-    width: 100%;
-    height: auto;
-    display: block;
-    border-radius: 16px;
-    opacity: 0;
-    transition: opacity 400ms ease;
-  }
+    .photo img.show {
+      opacity: 1;
+    }
 
-  .photo img.show {
-    opacity: 1;
-  }
+    .card {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(6px);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      width: 100%;
+    }
 
-  .card {
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(6px);
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    max-width: 540px;
-    width: 100%;
-  }
+    .quote {
+      font-size: 22px;
+      line-height: 1.4;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
 
-  .quote {
-    font-size: 22px;
-    line-height: 1.4;
-    font-weight: 600;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.4s ease;
-  }
+    .quote.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-  .quote.show {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    .meta {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 8px;
+    }
 
-  .meta {
-    font-size: 13px;
-    color: #6b7280;
-    margin-top: 8px;
-  }
+    .btn {
+      appearance: none;
+      border: 0;
+      background: #e11d48;
+      color: white;
+      padding: 16px 20px;
+      border-radius: 999px;
+      font-size: 18px;
+      font-weight: 700;
+      box-shadow: 0 6px 16px rgba(225, 29, 72, 0.35);
+      transition: transform 0.06s ease;
+    }
 
-  .btn {
-    appearance: none;
-    border: 0;
-    background: #e11d48;
-    color: white;
-    padding: 16px 20px;
-    border-radius: 999px;
-    font-size: 18px;
-    font-weight: 700;
-    box-shadow: 0 6px 16px rgba(225, 29, 72, 0.35);
-    transition: transform 0.06s ease;
-  }
+    .btn:active {
+      transform: translateY(1px) scale(0.995);
+    }
 
-  .btn:active {
-    transform: translateY(1px) scale(0.995);
-  }
+    .heart {
+      position: fixed;
+      bottom: 0;
+      font-size: 24px;
+      animation: floatUp 4s linear forwards;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
 
-  .heart {
-    position: fixed;
-    bottom: 0;
-    font-size: 24px;
-    animation: floatUp 4s linear forwards;
-    pointer-events: none;
-    will-change: transform, opacity;
-  }
-
-  @keyframes floatUp {
-    0% { transform: translate(0, 0) scale(1); opacity: 1; }
-    100% { transform: translate(var(--drift, 0px), -150px) scale(1.5); opacity: 0; }
-  }
-</style>
+    @keyframes floatUp {
+      0% { transform: translate(0, 0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--drift, 0px), -150px) scale(1.5); opacity: 0; }
+    }
+  </style>
 </head>
 <body>
-<div class="light-overlay"></div>
-<div class="app">
-  <h1>Love from Kevin</h1>
-  <div class="photo"><img id="photo" alt="Memory"></div>
-  <div class="card">
-    <div id="quote" class="quote">Loading your note…</div>
-    <div id="meta" class="meta"></div>
+  <div class="app">
+    <h1>Love from Kevin</h1>
+    <div class="photo"><img id="photo" alt="Memory"></div>
+    <div class="card">
+      <div id="quote" class="quote">Loading your note…</div>
+      <div id="meta" class="meta"></div>
+    </div>
+    <button class="btn" id="btnLove">Give Me Some Love ❤️</button>
+    <div id="counter" class="meta"></div>
   </div>
-  <button class="btn" id="btnLove">Give Me Some Love ❤️</button>
-  <div id="counter" class="meta"></div>
-</div>
 
-<script>
-const MET_DATE = new Date(2022, 8, 8);     // Sept 8, 2022
-const MARRIED_DATE = new Date(2024, 6, 5); // July 5, 2024
+  <script>
+    const MET_DATE = new Date(2022, 8, 8);
+    const MARRIED_DATE = new Date(2024, 6, 5);
 
-const QUOTES_URL  = 'quotes.json';
-const PHOTOS_URL  = 'photos.json';
-const SPECIAL_URL = 'special_messages.json';
+    const QUOTES_URL  = 'quotes.json';
+    const PHOTOS_URL  = 'photos.json';
+    const SPECIAL_URL = 'special_messages.json';
 
-const FALLBACK_QUOTES = [
-  "You are my love bug now and forever",
-  "You have my whole heart",
-  "I will always be here for you"
-];
+    const FALLBACK_QUOTES = [
+      "You are my love bug now and forever",
+      "You have my whole heart",
+      "I will always be here for you"
+    ];
 
-let QUOTES = [];
-let PHOTOS = [];
-let SPECIALS = {};
+    let QUOTES = [], PHOTOS = [], SPECIALS = [];
 
-function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function todayKey(){
-  const now = new Date();
-  return String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-}
-function todayMessages(){ return SPECIALS[todayKey()] || null; }
+    function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-async function fetchJSON(url){
-  try{
-    const res = await fetch(url + '?v=' + Date.now(), { cache: 'no-store' });
-    if(!res.ok) return null;
-    return await res.json();
-  }catch(e){ console.warn('Failed to load', url, e); return null; }
-}
+    async function fetchJSON(url){
+      try {
+        const res = await fetch(url + '?v=' + Date.now(), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch { return null; }
+    }
 
-async function loadData(){
-  const [q,p,s] = await Promise.allSettled([ fetchJSON(QUOTES_URL), fetchJSON(PHOTOS_URL), fetchJSON(SPECIAL_URL) ]);
-  if(q.status==='fulfilled' && Array.isArray(q.value)) QUOTES = q.value;
-  if(p.status==='fulfilled' && Array.isArray(p.value)) PHOTOS = p.value;
-  if(s.status==='fulfilled' && s.value && typeof s.value==='object') SPECIALS = s.value;
-}
+    async function loadData(){
+      const [q, p, s] = await Promise.all([
+        fetchJSON(QUOTES_URL),
+        fetchJSON(PHOTOS_URL),
+        fetchJSON(SPECIAL_URL)
+      ]);
+      if (Array.isArray(q)) QUOTES = q;
+      if (Array.isArray(p)) PHOTOS = p;
+      if (typeof s === 'object') SPECIALS = s;
+    }
 
-function updateCounters(){
-  const today = new Date();
-  const daysMet = Math.floor((today - MET_DATE) / 86400000);
-  const daysMarried = Math.floor((today - MARRIED_DATE) / 86400000);
-  document.getElementById('counter').textContent =
-    "We met Sep 08, 2022 • " + daysMet + " days ago | Married Jul 05, 2024 • " + daysMarried + " days ago";
-}
+    function updateCounters(){
+      const now = new Date();
+      const daysMet = Math.floor((now - MET_DATE) / 86400000);
+      const daysMarried = Math.floor((now - MARRIED_DATE) / 86400000);
+      document.getElementById('counter').textContent =
+        `We met Sep 08, 2022 • ${daysMet} days ago | Married Jul 05, 2024 • ${daysMarried} days ago`;
+    }
 
-function createHeart(){
-  const heart = document.createElement('div');
-  heart.className = 'heart';
-  const colors = ['❤️','🩷','🧡','💛'];
-  heart.textContent = colors[Math.floor(Math.random()*colors.length)];
-  heart.style.left = Math.random()*90 + 'vw';
-  heart.style.fontSize = (16 + Math.random()*24) + 'px';
-  heart.style.setProperty('--drift', (Math.random()*60-30)+'px');
-  document.body.appendChild(heart);
-  setTimeout(()=>heart.remove(), 4000);
-}
-function burstHearts(n){ for(let i=0;i<n;i++) setTimeout(createHeart, i*120); }
+    function createHeart(){
+      const heart = document.createElement('div');
+      heart.className = 'heart';
+      const colors = ['❤️','🩷','🧡','💛'];
+      heart.textContent = randomItem(colors);
+      heart.style.left = Math.random()*90 + 'vw';
+      heart.style.fontSize = (16 + Math.random()*24) + 'px';
+      heart.style.setProperty('--drift', (Math.random()*60-30)+'px');
+      document.body.appendChild(heart);
+      setTimeout(() => heart.remove(), 4000);
+    }
 
-let photoIndex = -1;
-let preloaded = [];
-function preloadPhotos(urls){
-  preloaded = urls.map(u=>{ const im = new Image(); im.src=u; return im; });
-}
-function rotatePhoto(){
-  const img = document.getElementById('photo');
-  if(!PHOTOS.length){ img.classList.remove('show'); img.style.opacity=0; return; }
-  photoIndex = (photoIndex+1) % PHOTOS.length;
-  const nextUrl = PHOTOS[photoIndex];
-  const candidate = preloaded[photoIndex];
+    function burstHearts(n){
+      for (let i = 0; i < n; i++) setTimeout(createHeart, i * 120);
+    }
 
-  img.classList.remove('show');
-  const applyNext = ()=>{
-    img.src = nextUrl;
-    requestAnimationFrame(()=>requestAnimationFrame(()=>img.classList.add('show')));
-  };
-  if(candidate && candidate.complete){ applyNext(); }
-  else { const t = new Image(); t.onload=applyNext; t.src=nextUrl; }
-}
+    let photoIndex = -1;
+    function rotatePhoto(){
+      const img = document.getElementById('photo');
+      if (!PHOTOS.length) return;
+      photoIndex = (photoIndex + 1) % PHOTOS.length;
+      img.classList.remove('show');
+      img.onload = () => img.classList.add('show');
+      img.src = PHOTOS[photoIndex];
+    }
 
-function pickQuote(){
-  const qEl = document.getElementById('quote');
-  const metaEl = document.getElementById('meta');
-  qEl.classList.remove('show');
-  setTimeout(()=>{
-    const specials = todayMessages();
-    const source = specials ? specials : (QUOTES.length ? QUOTES : FALLBACK_QUOTES);
-    const q = randomItem(source);
-    const now = new Date();
-    qEl.textContent = q;
-    metaEl.textContent = "— Kevin • " + now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-    qEl.classList.add('show');
-    if(navigator.vibrate) navigator.vibrate(12);
-  },200);
-}
+    function pickQuote(){
+      const qEl = document.getElementById('quote');
+      const metaEl = document.getElementById('meta');
+      qEl.classList.remove('show');
+      setTimeout(() => {
+        const quote = randomItem(QUOTES.length ? QUOTES : FALLBACK_QUOTES);
+        qEl.textContent = quote;
+        metaEl.textContent = "— Kevin • " + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        qEl.classList.add('show');
+      }, 200);
+    }
 
-document.getElementById('btnLove').addEventListener('click', ()=>{ pickQuote(); burstHearts(5); updateCounters(); });
+    document.getElementById('btnLove').addEventListener('click', () => {
+      pickQuote();
+      rotatePhoto();
+      burstHearts(5);
+      updateCounters();
+    });
 
-window.addEventListener('load', async () => {
-  try{
-    await loadData();
-  }catch(e){
-    console.error('Init load error', e);
-  }
-
-  if(PHOTOS.length){
-    preloadPhotos(PHOTOS);
-    const img = document.getElementById('photo');
-    img.src = PHOTOS[0];
-    img.classList.add('show');
-    setInterval(rotatePhoto, 7000);
-  }
-
-  updateCounters();
-  pickQuote();
-});
-</script>
+    window.addEventListener('load', async () => {
+      await loadData();
+      updateCounters();
+      pickQuote();
+      rotatePhoto();
+      setInterval(rotatePhoto, 7000);
+    });
+  </script>
 </body>
 </html>
