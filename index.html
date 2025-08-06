@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="love-from-kevin-icon.png">
+<title>Love from Kevin</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #fff5f7, #ffe8ef);
+    color: #2d2a32;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .app {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100dvh; padding: 24px; gap: 16px; text-align: center;
+  }
+  h1 {
+    font-size: 28px; margin: 0; letter-spacing: 0.5px;
+  }
+  .card {
+    background: rgba(255,255,255,0.8); backdrop-filter: blur(6px);
+    border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    max-width: 540px; width: 100%;
+  }
+  .quote {
+    font-size: 22px; line-height: 1.4; font-weight: 600;
+    opacity: 0; transform: translateY(10px);
+    transition: all 0.4s ease;
+  }
+  .quote.show {
+    opacity: 1; transform: translateY(0);
+  }
+  .meta {
+    font-size: 13px; color: #6b7280; margin-top: 8px;
+  }
+  .btn {
+    appearance: none; border: 0; background: #e11d48; color: white;
+    padding: 16px 20px; border-radius: 999px; font-size: 18px; font-weight: 700;
+    box-shadow: 0 6px 16px rgba(225, 29, 72, 0.35);
+    transition: transform 0.06s ease;
+  }
+  .btn:active { transform: translateY(1px) scale(0.995); }
+  .hint {
+    font-size: 12px; color: #6b7280; margin-top: 8px;
+  }
+  /* Splash screen */
+  #splash {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, #fff5f7, #ffe8ef);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    z-index: 9999;
+    transition: opacity 0.6s ease;
+  }
+  #splash img {
+    width: 120px; height: 120px; margin-bottom: 20px;
+  }
+  #splash.fade {
+    opacity: 0; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="splash">
+  <img src="love-from-kevin-icon.png" alt="Heart">
+  <div style="font-size:20px; font-weight:600;">Love from Kevin</div>
+</div>
+
+<div class="app">
+  <h1>Love from Kevin</h1>
+  <div class="card">
+    <div id="quote" class="quote">Tap the button for a note.</div>
+    <div id="meta" class="meta"></div>
+  </div>
+  <button class="btn" id="btnLove">Give Me Some Love ❤️</button>
+  <div class="hint">Tip: In Safari → Share → Add to Home Screen.</div>
+</div>
+
+<script>
+const quotes = ['I love you to the moon and back', 'You are the best thing to ever happen to me', 'You light up my world like no other', 'You are my love bug now and forever', 'I cant do life without you', 'you have my whole heart', 'I will always be here for you', 'Every day with you is my favorite day.', 'You make my heart smile.', 'Your love is my greatest blessing.', 'Life is sweeter with you by my side.', 'You are my today and all of my tomorrows.', 'In your arms is my favorite place to be.', 'You make the little things in life feel big and beautiful.', 'I’m thankful for you every single day.'];
+
+function randomItem(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function pickQuote() {
+  const qEl = document.getElementById('quote');
+  const metaEl = document.getElementById('meta');
+  qEl.classList.remove('show');
+  setTimeout(() => {
+    const q = randomItem(quotes);
+    const now = new Date();
+    qEl.textContent = q;
+    metaEl.textContent = "— Kevin • " + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    qEl.classList.add('show');
+    if (navigator.vibrate) navigator.vibrate(12);
+  }, 200);
+}
+
+document.getElementById('btnLove').addEventListener('click', pickQuote);
+
+// Splash screen fade
+window.addEventListener('load', () => {
+  setTimeout(() => document.getElementById('splash').classList.add('fade'), 800);
+});
+</script>
+</body>
+</html>
